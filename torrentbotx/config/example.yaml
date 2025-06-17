@@ -1,0 +1,28 @@
+# example.yaml
+
+# qBittorrent 配置
+QBIT_HOST: "http://localhost:8080"
+QBIT_PORT: 8080
+QBIT_USERNAME: "admin"
+QBIT_PASSWORD: "adminadmin"
+QBIT_VERIFY_CERT: true
+QBIT_REQUESTS_ARGS:
+  timeout: [ 10, 30 ]
+
+# Telegram 配置
+TG_BOT_TOKEN_MONITOR: "your_telegram_bot_token"
+TG_CHAT_ID: "your_telegram_chat_id"
+TG_MAX_DELETED_ITEMS_IN_REPORT: 20
+LOG_LEVEL: "INFO"
+
+# 下载器配置，可选值：qbittorrent, aria2, transmission
+DOWNLOADERS: "qbittorrent"
+
+# PT 站点配置
+PT_SITES:
+  - name: "M-Team"
+    api_key: "your_mteam_api_key"
+    url: "https://api.m-team.cc"
+  - name: "carpt"
+    api_key: "your_hdsky_api_key"
+    url: "https://api.carpt.net"
