@@ -7,7 +7,8 @@ venv/
 .venv/
 env/
 *.egg-info/
-data
+data/**
+!data/.gitkeep
 
 # macOS
 .DS_Store
