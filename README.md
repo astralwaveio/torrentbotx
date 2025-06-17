@@ -1,6 +1,6 @@
-# torrentbotx
+# TorrentBotX
 
-`torrentbotx` 是一个**面向多下载器、多 PT 站点**的自动化下载与管理平台。项目目标是：通过统一的接口，实现
+`TorrentBotX` 是一个**面向多下载器、多 PT 站点**的自动化下载与管理平台。项目目标是：通过统一的接口，实现
 qBittorrent、aria2、Transmission 多下载器和主流 PT 站点的联动，支持定时任务、自动清理和 Telegram 机器人交互，极大提升下载管理体验与自动化水平。
 
 ---
@@ -140,7 +140,7 @@ python run.py
 
 ```python
 # ✅ 推荐
-from project_name.utils.logger import get_logger
+from torrentbotx.utils.logger import get_logger
 
 # ❌ 不推荐
 from ..utils.logger import get_logger
@@ -152,7 +152,7 @@ from ..utils.logger import get_logger
 
 ```python
 # ✅ 推荐
-from project_name.utils.string_utils import to_snake_case
+from torrentbotx.utils.string_utils import to_snake_case
 
 # ❌ 不推荐
 from string_utils import to_snake_case  # 模糊来源
