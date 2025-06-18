@@ -1,3 +1,3 @@
-from torrentbotx.core.manager import CoreManager
+from torrentbotx.core.manager import CoreManager, TorrentManager
 
-__all__ = ['CoreManager']
+__all__ = ['CoreManager', 'TorrentManager']
