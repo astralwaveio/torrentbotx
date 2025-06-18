@@ -1,136 +1,108 @@
+"""Configuration loader for TorrentBotX."""
+
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Any, Dict
 
 import yaml
+from pydantic_settings import BaseSettings
 
 from torrentbotx.utils.logger import get_logger
 
-# 获取日志记录器
-logger = get_logger()
+logger = get_logger("config")
 
-# 默认配置项
-DEFAULT_CONFIG = {
-    'QBIT_HOST': 'localhost',
-    'QBIT_PORT': 8080,
-    'QBIT_USERNAME': 'admin',
-    'QBIT_PASSWORD': 'adminadmin',
-    'TG_BOT_TOKEN': '',
-    'MT_HOST': 'https://api.m-team.cc',
-    'MT_APIKEY': '',
-    'USE_IPV6_DOWNLOAD': False,
-    'LOCAL_TIMEZONE': 'Asia/Shanghai',
-}
+DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.yaml")
+EXAMPLE_CONFIG_PATH = Path(__file__).with_name("example.yaml")
+CONFIG_ENV_VAR = "TORRENTBOTX_CONFIG"
 
-# 默认配置文件路径
-DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.yaml')
-EXAMPLE_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'example.yaml')
+
+class Settings(BaseSettings):
+    """Typed settings with environment variable support."""
+
+    QBIT_HOST: str = "localhost"
+    QBIT_PORT: int = 8080
+    QBIT_USERNAME: str = "admin"
+    QBIT_PASSWORD: str = "adminadmin"
+    TG_BOT_TOKEN: str = ""
+    MT_HOST: str = "https://api.m-team.cc"
+    MT_APIKEY: str = ""
+    USE_IPV6_DOWNLOAD: bool = False
+    LOCAL_TIMEZONE: str = "Asia/Shanghai"
+
+    class Config:
+        env_prefix = ""
+        case_sensitive = False
 
 
 class Config:
-    def __init__(self, config_file: str = DEFAULT_CONFIG_PATH):
-        """
-        初始化配置，支持从配置文件加载配置项。配置加载顺序：环境变量 > 配置文件 > 默认值。
-        :param config_file: 配置文件路径，默认为 'config.yaml'。
-        """
-        self.config_file = config_file
-        self.config_data = self._load_config(config_file)
-        self._load_from_env()  # 从环境变量加载配置，覆盖配置文件中的配置
+    """Wrapper around :class:`Settings` for backward compatibility."""
+
+    def __init__(self, config_file: str | Path | None = None) -> None:
+        self.config_file = Path(
+            config_file or os.getenv(CONFIG_ENV_VAR, DEFAULT_CONFIG_PATH)
+        )
+        data = self._load_yaml(self.config_file)
+        self.settings = Settings(**data)
         self._validate_config()
 
     @staticmethod
-    def _load_config(config_file: str) -> Dict[str, Any]:
-        """
-        从指定的 YAML 配置文件加载配置。
-        :param config_file: 配置文件路径
-        :return: 配置字典
-        """
-        config_data = DEFAULT_CONFIG.copy()  # 默认配置
-        if Path(config_file).exists():
+    def _load_yaml(path: Path) -> Dict[str, Any]:
+        data: Dict[str, Any] = {}
+        if path.exists():
             try:
-                with open(config_file, 'r', encoding='utf-8') as file:
-                    file_data = yaml.safe_load(file) or {}
-                    config_data.update(file_data)
-                    logger.info(f"成功加载配置文件: {config_file}")
-            except yaml.YAMLError as e:
-                logger.error(f"读取配置文件 {config_file} 时出错：{e}")
-                raise
-            except Exception as e:
-                logger.error(f"加载配置文件 {config_file} 时发生未知错误：{e}")
+                with open(path, "r", encoding="utf-8") as fh:
+                    file_data = yaml.safe_load(fh) or {}
+                    data.update(file_data)
+                logger.info("成功加载配置文件: %s", path)
+            except Exception as exc:  # pragma: no cover - unexpected IO errors
+                logger.error("读取配置文件 %s 时出错：%s", path, exc)
                 raise
         else:
-            logger.warning(f"配置文件 {config_file} 不存在，使用默认配置")
+            logger.warning("配置文件 %s 不存在，使用默认配置", path)
+        return data
 
-        return config_data
-
-    def _load_from_env(self):
-        """
-        从环境变量加载配置项，如果环境变量存在则覆盖配置文件中的配置。
-        """
-        for key in self.config_data:
-            env_value = os.getenv(key)
-            if env_value is not None:
-                # 转换为正确的数据类型（例如整数、布尔值等）
-                if env_value.lower() == 'false':
-                    self.config_data[key] = False
-                elif env_value.lower() == 'true':
-                    self.config_data[key] = True
-                elif key == 'QBIT_PORT' or key == 'MT_APIKEY':
-                    self.config_data[key] = int(env_value) if env_value.isdigit() else env_value
-                else:
-                    self.config_data[key] = env_value
-                logger.info(f"加载环境变量配置：{key} = {env_value}")
-
-    def _validate_config(self):
-        """
-        验证配置的完整性，确保所有必要的配置项存在。
-        """
-        required_keys = ['QBIT_HOST', 'QBIT_PORT', 'QBIT_USERNAME', 'QBIT_PASSWORD', 'TG_BOT_TOKEN']
+    def _validate_config(self) -> None:
+        required_keys = [
+            "QBIT_HOST",
+            "QBIT_PORT",
+            "QBIT_USERNAME",
+            "QBIT_PASSWORD",
+            "TG_BOT_TOKEN",
+        ]
         for key in required_keys:
-            if not self.config_data.get(key):
-                logger.warning(f"配置文件缺少必需的键：{key}")
+            if not getattr(self.settings, key, None):
+                logger.warning("配置文件缺少必需的键：%s", key)
 
     def get(self, key: str, default: Any = None) -> Any:
-        """
-        获取配置项的值
-        :param key: 配置项键
-        :param default: 默认值（当键不存在时返回）
-        :return: 配置项的值
-        """
-        return self.config_data.get(key, default)
+        return getattr(self.settings, key, default)
 
     def get_all(self) -> Dict[str, Any]:
-        """
-        获取所有配置项
-        :return: 配置项字典
-        """
-        return self.config_data
+        return self.settings.dict()
 
     def set(self, key: str, value: Any) -> None:
-        """
-        设置某个配置项的值
-        :param key: 配置项键
-        :param value: 配置项值
-        """
-        self.config_data[key] = value
+        setattr(self.settings, key, value)
+
+    def reload(self) -> None:
+        data = self._load_yaml(self.config_file)
+        self.settings = Settings(**data)
 
     def save(self) -> None:
-        """
-        保存当前配置到文件
-        """
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as file:
-                yaml.dump(self.config_data, file, default_flow_style=False, allow_unicode=True)
-            logger.info(f"配置已成功保存到 {self.config_file}")
-        except Exception as e:
-            logger.error(f"保存配置文件时出错：{e}")
+            with open(self.config_file, "w", encoding="utf-8") as fh:
+                yaml.dump(
+                    self.settings.dict(),
+                    fh,
+                    default_flow_style=False,
+                    allow_unicode=True,
+                )
+            logger.info("配置已成功保存到 %s", self.config_file)
+        except Exception as exc:  # pragma: no cover - unexpected IO errors
+            logger.error("保存配置文件时出错：%s", exc)
 
 
-# 配置文件加载函数
-def load_config(config_file: str = DEFAULT_CONFIG_PATH) -> Config:
-    """
-    加载配置
-    :param config_file: 配置文件路径，默认为 'config.yaml'
-    :return: 配置对象
-    """
+def load_config(config_file: str | Path | None = None) -> Config:
+    """Convenient helper to load configuration."""
+
     return Config(config_file)
