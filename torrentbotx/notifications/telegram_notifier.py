@@ -13,9 +13,13 @@ class TelegramNotifier(Notifier):
         self.bot = Bot(token=bot_token)
         self.chat_id = chat_id
 
-    def send_message(self, message: str):
+    def send_message(self, message):
+        import asyncio
+        asyncio.run(self._send_message(message))
+
+    async def _send_message(self, message: str):
         try:
-            self.bot.send_message(chat_id=self.chat_id, text=message)
+            await self.bot.send_message(chat_id=self.chat_id, text=message)
             logger.info(f"成功发送消息到 {self.chat_id}")
         except TelegramError as e:
             logger.error(f"发送 Telegram 消息失败: {e}")
