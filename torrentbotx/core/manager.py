@@ -59,3 +59,20 @@ class CoreManager:
         else:
             self.notifier.send_message(f"所有下载器添加任务失败: {torrent_id}")
             return False
+
+
+class TorrentManager:
+    """简化的种子管理器，用于测试目的."""
+
+    def __init__(self, qb_client=None) -> None:
+        self.qb_client = qb_client
+
+    def add_torrent(self, torrent_url: str) -> None:
+        if not self.qb_client:
+            raise RuntimeError("qBittorrent client 未初始化")
+        self.qb_client.torrents_add(urls=torrent_url)
+
+    def get_torrent(self, torrent_hash: str):
+        if not self.qb_client:
+            raise RuntimeError("qBittorrent client 未初始化")
+        return self.qb_client.torrents_info(torrent_hashes=torrent_hash)

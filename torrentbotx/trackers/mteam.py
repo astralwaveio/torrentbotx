@@ -71,3 +71,29 @@ class MTeamTracker(BaseTracker):
         except Exception as e:
             logger.error(f"解析 M-Team 下载链接时出错: {e}")
             return None
+
+
+class MTeamManager:
+    """简化的 M-Team 管理器, 仅用于单元测试."""
+
+    def __init__(self, api_client=None) -> None:
+        self.api_client = api_client
+
+    def get_torrent_details(self, torrent_id: str):
+        return self.api_client.get_torrent_details(torrent_id)
+
+    def get_torrent_download_url(self, torrent_id: str):
+        result = self.api_client.get_torrent_download_url(torrent_id)
+        if isinstance(result, dict) and "data" in result:
+            return result["data"]
+        return result
+
+    def search_torrents_by_keyword(self, keyword: str):
+        return self.api_client.search_torrents_by_keyword(keyword)
+
+    # 兼容测试文件中残留的 `se_` 调用
+    def se_(self, *args, **kwargs):  # pragma: no cover - backward compatibility
+        return self.search_torrents_by_keyword(*args, **kwargs)
+
+
+__all__ = ["MTeamTracker", "MTeamManager"]

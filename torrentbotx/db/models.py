@@ -38,6 +38,15 @@ def create_tables():
             )
         ''')
 
+        # 创建用户表
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT,
+                chat_id INTEGER
+            )
+        ''')
+
         # 提交更改并关闭连接
         conn.commit()
         conn.close()

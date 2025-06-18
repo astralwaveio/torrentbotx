@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Dict
 
@@ -60,7 +61,18 @@ class Config:
                 logger.error("读取配置文件 %s 时出错：%s", path, exc)
                 raise
         else:
-            logger.warning("配置文件 %s 不存在，使用默认配置", path)
+            logger.warning("配置文件 %s 不存在，尝试从示例复制", path)
+            if EXAMPLE_CONFIG_PATH.exists():
+                try:
+                    shutil.copy(EXAMPLE_CONFIG_PATH, path)
+                    logger.info("已从示例复制配置文件到 %s", path)
+                    with open(path, "r", encoding="utf-8") as fh:
+                        file_data = yaml.safe_load(fh) or {}
+                        data.update(file_data)
+                except Exception as exc:
+                    logger.error("复制示例配置失败：%s", exc)
+            else:
+                logger.warning("示例配置文件不存在，使用默认值")
         return data
 
     def _validate_config(self) -> None:

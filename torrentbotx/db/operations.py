@@ -10,10 +10,13 @@ def insert_torrent(name, t_hash, category, state, added_on, progress, ratio):
         return
     try:
         cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO torrents (name, t_hash, category, state, added_on, progress, ratio)
+        cursor.execute(
+            """
+            INSERT INTO torrents (name, hash, category, state, added_on, progress, ratio)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (name, t_hash, category, state, added_on, progress, ratio))
+            """,
+            (name, t_hash, category, state, added_on, progress, ratio),
+        )
         conn.commit()
         conn.close()
     except sqlite3.Error as e:
@@ -27,7 +30,7 @@ def get_torrent_by_hash(t_hash):
         return None
     try:
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM torrents WHERE t_hash = ?', (t_hash,))
+        cursor.execute('SELECT * FROM torrents WHERE hash = ?', (t_hash,))
         row = cursor.fetchone()
         conn.close()
         return row
@@ -43,7 +46,9 @@ def update_task_status(task_id, status):
         return
     try:
         cursor = conn.cursor()
-        cursor.execute('UPDATE tasks SET status = ? WHERE id = ?', (status, task_id))
+        cursor.execute(
+            'UPDATE tasks SET status = ? WHERE id = ?', (status, task_id)
+        )
         conn.commit()
         conn.close()
     except sqlite3.Error as e:
