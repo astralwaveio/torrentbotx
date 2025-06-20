@@ -9,11 +9,12 @@ from torrentbotx.utils import get_logger
 
 logger = get_logger("core.manager")
 
+
 class CoreManager:
     def __init__(self, config=None, notifier: Optional[Notifier] = None):
         self.config = config or load_config()
         self.notifier = notifier or TelegramNotifier(
-            bot_token=self.config.get("TG_BOT_TOKEN_MT"),
+            bot_token=self.config.get("TG_BOT_TOKEN"),
             chat_id=self.config.get("TG_ALLOWED_CHAT_IDS")
         )
         self.downloaders = self._init_downloaders()
@@ -37,8 +38,8 @@ class CoreManager:
         else:
             logger.info(f"✅ 加载下载器数量: {len(self.downloaders)}")
 
-        if not self.config.get("TG_BOT_TOKEN_MT"):
-            logger.warning("⚠️ 未配置 TG_BOT_TOKEN_MT，无法发送 Telegram 通知")
+        if not self.config.get("TG_BOT_TOKEN"):
+            logger.warning("⚠️ 未配置 TG_BOT_TOKEN，无法发送 Telegram 通知")
 
         self.notifier.send_message("CoreManager 启动完成 ✅")
 
@@ -53,6 +54,7 @@ class CoreManager:
         for downloader in self.downloaders:
             success = downloader.add_torrent(torrent_id)
             success_list.append(success)
+
         if any(success_list):
             self.notifier.send_message(f"部分下载器已成功添加任务: {torrent_id}")
             return True

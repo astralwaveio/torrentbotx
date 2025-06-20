@@ -10,6 +10,15 @@ log = get_logger("downloaders.qbittorrent")
 
 @register_downloader(DownloaderType.QBITTORRENT)
 class QBittorrentDownloader(BaseDownloader):
+    def get_torrents(self) -> list:
+        pass
+
+    def pause_torrent(self, torrent_id: str) -> bool:
+        pass
+
+    def resume_torrent(self, torrent_id: str) -> bool:
+        pass
+
     def __init__(self):
         self.config = load_config()
         self.client = None

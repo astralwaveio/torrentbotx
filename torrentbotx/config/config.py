@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Dict
+from typing import List, Dict, Any
 
 import yaml
 from pydantic_settings import BaseSettings
@@ -19,14 +19,33 @@ EXAMPLE_CONFIG_PATH = Path(__file__).with_name("example.yaml")
 CONFIG_ENV_VAR = "TORRENTBOTX_CONFIG"
 
 
-class Settings(BaseSettings):
-    """Typed settings with environment variable support."""
+class PTItem(BaseSettings):
+    name: str
+    api_key: str
+    api_url: str
 
+
+class Settings(BaseSettings):
     QBIT_HOST: str = "localhost"
     QBIT_PORT: int = 8080
     QBIT_USERNAME: str = "admin"
     QBIT_PASSWORD: str = "adminadmin"
+    QBIT_VERIFY_CERT: bool = True
+    QBIT_REQUESTS_ARGS: Dict[str, Any] = {"timeout": [10, 30]}
+
+    TG_BOT_TOKEN_MT: str = ""
+    TG_ALLOWED_CHAT_IDS: str = ""
     TG_BOT_TOKEN: str = ""
+    TG_BOT_TOKEN_MONITOR: str = ""
+    TG_CHAT_ID: str = ""
+    TG_MAX_DELETED_ITEMS_IN_REPORT: int = 20
+
+    DOWNLOADERS: str = "qbittorrent"
+    PT_SITES: List[PTItem] = []
+
+    LOG_LEVEL: str = "INFO"
+    DB_PATH: str = "torrentbotx.db"
+
     MT_HOST: str = "https://api.m-team.cc"
     MT_APIKEY: str = ""
     USE_IPV6_DOWNLOAD: bool = False
@@ -35,6 +54,9 @@ class Settings(BaseSettings):
     class Config:
         env_prefix = ""
         case_sensitive = False
+
+
+Settings.model_rebuild()
 
 
 class Config:

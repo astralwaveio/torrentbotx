@@ -1,4 +1,3 @@
-from telegram import Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 from torrentbotx.bots.telegram.handler import start, help_command, add_task, qbtasks, cancel
@@ -7,15 +6,13 @@ from torrentbotx.utils.logger import get_logger
 logger = get_logger("telegram_updater")
 
 
-async def setup_application(application: Application, bot_token: str):
+def setup_application(application: Application, bot_token: str):
     """
     设置机器人应用，注册命令和消息处理器
     """
-    bot = Bot(bot_token)
-    application.bot = bot
+    logger.info("🔄 正在设置 Telegram 机器人应用...")
 
     # 注册命令处理器
-    logger.info("🔄 正在设置 Telegram 机器人应用...")
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("add", add_task))
